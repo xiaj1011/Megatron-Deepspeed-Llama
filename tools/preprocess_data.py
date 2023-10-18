@@ -86,14 +86,8 @@ def get_args():
     group.add_argument('--tokenizer-type', type=str, required=True,
                        choices=['Llama2Tokenizer', 'SentencePieceTokenizer'],
                        help='what type of tokenizer to use')
-    group.add_argument('--tokenizer-model', type=str, default=None,
-                       help='YTTM tokenizer model')
     group.add_argument('--vocab-file', type=str, default=None,
                        help='Path to the vocab file')
-    group.add_argument('--vocab-size', default=786,
-                       help='size of vocab for use with NullTokenizer')
-    group.add_argument('--merge-file', type=str, default=None,
-                       help='Path to the BPE merge file (if necessary).')
     group.add_argument('--append-eod', action='store_true',
                        help='Append an <eod> token to the end of a document.')
     
