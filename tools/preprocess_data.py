@@ -22,7 +22,6 @@ import multiprocessing
 import os
 import sys
 
-import lm_dataformat as lmd
 import numpy as np
 
 sys.path.append(
@@ -32,6 +31,7 @@ import time
 import tqdm
 import torch
 import ftfy
+import json
 
 from megatron.tokenizer import build_tokenizer
 from megatron.data import indexed_dataset
@@ -48,12 +48,19 @@ class Encoder(object):
         # 类的属性，所有Encoder实例共享，避免每个进程初始化耗时
         Encoder.tokenizer = build_tokenizer(self.args)
     
-    def encode(self, text):
-        if self.args.ftfy:
-            text = ftfy.fix_text(text)
+    def encode(self, json_line):
+        data = json.loads(json_line)
+        
+        def _ftfy(text):
+            if self.args.ftfy:
+                return ftfy.fix_text(text)
+            
+            return text
         
         ids = {}
         for key in self.args.jsonl_keys:
+            text = _ftfy(data[key])
+            
             doc_ids = []
             text_ids = Encoder.tokenizer.tokenize(text)
             if len(text_ids) > 0:
@@ -63,7 +70,7 @@ class Encoder(object):
             
             ids[key] = doc_ids
         
-        return ids, len(text)
+        return ids, len(json_line)
         
 
 def get_args():
@@ -117,9 +124,10 @@ def yield_from_files(fnames: list, semaphore):
     """
     
     def yielder(fname, semaphore):
-        for f in filter(lambda x: x, lmd.Reader(fname).stream_data()): # for jsonl, key must be 'text'
+        fin = open(fname, 'r', encoding='utf-8')
+        for data in fin:
             semaphore.acquire()
-            yield f
+            yield data
             
     # use semaphore._value to check 
     for fname in fnames:
