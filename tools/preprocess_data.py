@@ -63,6 +63,7 @@ class Encoder(object):
             
             doc_ids = []
             text_ids = Encoder.tokenizer.tokenize(text)
+            
             if len(text_ids) > 0:
                 doc_ids.append(text_ids)
             if self.args.append_eod:
@@ -79,8 +80,10 @@ def get_args():
     group = parser.add_argument_group(title='input data')
     group.add_argument('--input', type=str, required=True, 
                        help='path to input json')
-    group.add_argument('--json-keys', nargs='+', default=['text'], 
-                       help='Space separate listed of keys to extract from json')
+    group.add_argument('--jsonl-keys', nargs='+', default=['text'], 
+                       help='Space separate listed of keys to extract from jsonl')
+    group.add_argument("--num-docs", default=None, type=int,
+                       help="Optional: Number of documents in the input data (if known) for an accurate progress bar.",)
     
     group = parser.add_argument_group(title="output data")
     group.add_argument('--output-prefix', type=str, required=True,
@@ -97,6 +100,8 @@ def get_args():
                        help='Path to the vocab file')
     group.add_argument('--append-eod', action='store_true',
                        help='Append an <eod> token to the end of a document.')
+    group.add_argument("--ftfy", action="store_true", 
+                       help="Use ftfy to clean text")
     
     group.add_argument_group(title='runtime')
     group.add_argument('--workers', type=int, default=1, 
